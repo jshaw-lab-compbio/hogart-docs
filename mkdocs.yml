@@ -1,4 +1,30 @@
-site_name: My Docs
+site_name: Hogart - detecting horizontal multi-gene transfer across microbial genomes
 site_url: https://jshaw-lab-compbio.github.io/hogart-docs/
+copyright: >
+  Developed by <a href="https://jim-shaw-bluenote.github.io">Jim Shaw</a> at the <a href="https://hlilab.github.io/">Heng Li</a> lab. 
 theme:
   name: material
+  palette: 
+    primary: deep purple
+  logo: assets/favicon.png
+  favicon: assets/favicon.png
+
+nav:
+  - Introduction: index.md
+  - Use cases and limitations: explanation.md
+  - Install and quick start: install+quickstart.md
+  - How to run hogart: running.md
+  - Output formats: outputs.md
+
+markdown_extensions:
+  - pymdownx.magiclink
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - autorefs
+
+extra:
+  generator: false
