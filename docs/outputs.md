@@ -7,16 +7,16 @@ hogart_results/
 ├── module_loci.tsv
 ├── module_loci.bed
 ├── module_details.json     (very verbose, but complete)
+└── modules/                (shortcut to extract/modules/)
+    |── module_7/
+    ├── module_12_var1/
+    └── module_12_var2/
+├── hogart.log
 ├── prepare/                (gene calls)
 ├── run/                    (intermediate files)
-└── extract/
-    └── modules/            (one folder per module)
-        ├── module_7/
-        ├── module_12_var1/
-        └── module_12_var2/
 ```
 
-The four files in the top folder are shortcuts to files in `extract/`. 
+The four summary files and `modules/` in the top folder are shortcuts to files in `extract/`. If `run` finds no candidate paths, `extract` is skipped and these shortcuts are not created.
 
 ## Summary files
 
@@ -30,16 +30,21 @@ modules:
     num_loci: 9
     num_genes: 18
     mean_length_bp: 22450.0
+    directory: "/absolute/path/hogart_results/extract/modules/module_433_var2"
     genes:
-      - {"locus_tag": "MALGFC_04114", "gene_name": "traG", "product": "Conjugative transfer protein", "dbxref": null}
-      - {"locus_tag": "MALGFC_04115", "gene_name": null, "product": "Hypothetical protein", "dbxref": null}
+      - {"locus_tag": "MALGFC_04114", "gene_name": "traG", "product": "Conjugative transfer protein", "dbxref": null, "support": "8/9"}
+      - {"locus_tag": "MALGFC_04115", "gene_name": null, "product": "Hypothetical protein", "dbxref": null, "support": "7/9"}
 ```
+
+`support: "50/60"` means 50 of the 60 regions assigned to this module or variant contain that gene. These are raw counts, but are not yet weighted by diversity. 
 
 **`module_loci.tsv` - where each module is found.** One row per locus (a module integrated in a genome). A genome can have more than one copy of a module.
 
-**`module_loci.bed` - the same loci for genome browsers** (IGV, bedtools, etc.). BED files only store contig names, so if two genomes share contig names, use the TSV.
+The columns are `module_id`, `fasta`, `genome`, `contig`, `start_1based`, `end_1based`, `length_bp`, and `num_genes`. Coordinates span the first to last observed retained consensus genes, not the padded input region. Loci with fewer than two distinct retained consensus genes are omitted. `fasta` identifies the source assembly and `genome` its genome unit; missing assembly labels are `-`.
 
-**`module_details.json` - everything, for scripting.** Includes the above plus actual gene sequences and genomic coordinates. 
+**`module_loci.bed` - the same loci for genome browsers** (IGV, bedtools, etc.). This is BED4: contig, zero-based start, exclusive end, and module ID. BED files only store contig names, so if two genomes share contig names, use the TSV.
+
+**`module_details.json` - complete module summaries, for scripting.** Includes gene annotations, raw and weighted support, final genomic coordinates, length statistics, source-path provenance, and absolute paths to the output files. Sequences are stored in FASTA files, not duplicated in this JSON. The current format is version 2; JSON locus coordinates are 1-based inclusive, like the TSV.
 
 ## Per-module folders
 
@@ -48,22 +53,36 @@ Each module gets a folder in `extract/modules/` containing:
 | File | Contents |
 |---|---|
 | `genes.fna` / `genes.faa` | The module's genes (nucleotide / protein), in order |
-| `source_path.json` | Summary file of the present genes and the consensus step (if a non-variant module) |
-| `loci/*.gbk` | GenBank format files for each loci. Useful for visualization with [clinker](https://github.com/gamcil/clinker) |
-| `gene_families/col*.fna` | (requires `--write-gene-families`) The original gene sequences for each consensus gene, prior to collapsing. |
+| `module.json` | This module's record from `module_details.json` |
+| `loci.tsv` | One row per final locus, with coordinates, gene count, and its GenBank filename |
+| `source_path.json` | The original padded regions and their gene sequences, before consensus extraction (non-variant modules only; see below for variants) |
+| `loci/*.gbk` | GenBank files for observed loci, written by default unless `--no-genbank` is used. Useful for visualization with [clinker](https://github.com/gamcil/clinker) |
+| `gene_families/col*.fna` / `col*.faa` | (requires `--write-gene-families`) All mapped nucleotide / protein copies for each retained consensus gene, not just unique sequences |
 
-Each gene in `genes.fna` / `genes.faa` has a header with its locus tag, gene name, product, and **frequency**: the fraction of loci carrying that gene, e.g. `freq=0.875|n=7/8` means 7 of 8 loci. Frequencies are weighted so that near-identical genomes do not dominate.
+Example records from a real `genes.faa`:
+
+```fasta
+>OCPOJN_01061|-|freq=0.676|n=4/5|col68 UPF0237 protein SSA_2019 dbxref=SO:0001217,UniRef:UniRef50_A3CQD4
+MKAIITVVGKDQKGIVAGVATKVAELGLNIDDISQTVLDEYFTMMAVVSSDEKKDFTQLRSELEEFGQSLHVKINIQSAAIFDAMHNL
+>OCPOJN_01072|-|freq=0.486|n=2/5|col98 hypothetical protein dbxref=SO:0001217,UniRef:UniRef50_K8MUX3
+MNKYRVIYYLCIIAFIANVSMMIGTLLGWFHILDSNYFFWSSLILSLVFERIEKKVKERV
+```
+
+Each gene in `genes.fna` / `genes.faa` has a header such as `LOCUS_TAG|gene_name|freq=0.875|n=7/8|col17 product`. `n=7/8` is raw region support, using the same basis as YAML `support`. **Frequency** is the diversity-weighted fraction of assigned-region weight carrying the gene, so it need not equal 7/8. Near-identical genomes have less or zero weight. The JSON `genes[].support` stores the weighted numerator and denominator explicitly.
+
+GenBank files contain translated genes observed within each final locus, including accessory genes, in their original order and orientation. Intergenic or unavailable DNA is filled with Ns: these are visualization exports, not reconstructed assembly sequences. The local `loci.tsv` uses the same columns as the global TSV except that it omits `module_id` and adds `genbank_file`.
 
 ## Module variants
 
 Mobile elements are often mosaic: the same element may carry different cargo genes in different genomes. When hogart finds several distinct gene-content versions of a module, it reports them as **variants** (`module_12_var1`, `module_12_var2`, ...) instead of one combined module. The variant numbers are arbitrary labels.
 
+The combined consensus of variant modules can be inspected under `extract/debug_modules/module_12/`.
+
 ## Interpreting modules
 
 - A module is a **candidate** horizontally transferred region. Look at its genes, its loci, and its biological context before calling it an HGT event.
-- Module boundaries are approximate. Compare the loci (e.g., `loci/*.gbk` in clinker) to check genes near the ends.
+- Module boundaries are approximate and are limited to **gene boundaries**. Compare the loci (e.g., `loci/*.gbk` in clinker) to check genes near the ends.
 - Module IDs change between runs. To compare runs, compare loci, not IDs.
-
 
 ## Outputs of each step (`prepare`, `run`, `extract`)
 
@@ -80,3 +99,4 @@ Mobile elements are often mosaic: the same element may carry different cargo gen
 | `path_regions.json` | Candidate regions with 25 kb of flanking genes on each side; the input to `extract` |
 
 **`extract/`: final modules.** Cleans up the candidates and finds variants. All the files described above (summary files and `modules/`) are here.
+

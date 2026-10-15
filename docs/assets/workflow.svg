@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="196" viewBox="0 0 900 196" role="img" aria-labelledby="title description">
+  <title id="title">Hogart end-to-end workflow</title>
+  <desc id="description">One command runs three stages: prepare collects genes and proteins, calling genes if needed; run finds shared candidate modules; extract refines modules and resolves variants.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#673ab7"/>
+    </marker>
+  </defs>
+  <text x="450" y="31" text-anchor="middle" fill="#673ab7" font-family="ui-monospace, Consolas, monospace" font-size="21" font-weight="600">hogart end-to-end</text>
+  <path d="M 20 66 V 53 H 880 V 66" fill="none" stroke="#b39ddb" stroke-width="2"/>
+  <g fill="#f7f4fc" stroke="#d1c4e9" stroke-width="1.5">
+    <rect x="20" y="82" width="252" height="96" rx="10"/>
+    <rect x="324" y="82" width="252" height="96" rx="10"/>
+    <rect x="628" y="82" width="252" height="96" rx="10"/>
+  </g>
+  <g fill="none" stroke="#673ab7" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M 282 130 H 312"/>
+    <path d="M 586 130 H 616"/>
+  </g>
+  <g text-anchor="middle" fill="#452780" font-family="ui-monospace, Consolas, monospace" font-size="22" font-weight="600">
+    <text x="146" y="119">prepare</text>
+    <text x="450" y="119">run</text>
+    <text x="754" y="119">extract</text>
+  </g>
+  <g text-anchor="middle" fill="#424242" font-family="Arial, sans-serif" font-size="16">
+    <text x="146" y="151">Collect genes &amp; proteins</text>
+    <text x="450" y="151">Find candidate modules</text>
+    <text x="754" y="151">Resolve modules &amp; variants</text>
+  </g>
+</svg>
