@@ -40,11 +40,11 @@ modules:
 
 **`module_loci.tsv` - where each module is found.** One row per locus (a module integrated in a genome). A genome can have more than one copy of a module.
 
-The columns are `module_id`, `fasta`, `genome`, `contig`, `start_1based`, `end_1based`, `length_bp`, and `num_genes`. Coordinates span the first to last observed retained consensus genes, not the padded input region. Loci with fewer than two distinct retained consensus genes are omitted. `fasta` identifies the source assembly and `genome` its genome unit; missing assembly labels are `-`.
+Note: loci with fewer than two distinct retained consensus genes are omitted. 
 
 **`module_loci.bed` - the same loci for genome browsers** (IGV, bedtools, etc.). This is BED4: contig, zero-based start, exclusive end, and module ID. BED files only store contig names, so if two genomes share contig names, use the TSV.
 
-**`module_details.json` - complete module summaries, for scripting.** Includes gene annotations, raw and weighted support, final genomic coordinates, length statistics, source-path provenance, and absolute paths to the output files. Sequences are stored in FASTA files, not duplicated in this JSON. The current format is version 2; JSON locus coordinates are 1-based inclusive, like the TSV.
+**`module_details.json` - complete module summaries, for scripting.** Includes gene annotations, raw and weighted support, final genomic coordinates, length statistics, source-path provenance, and absolute paths to the output files. 
 
 ## Per-module folders
 
@@ -68,9 +68,12 @@ MKAIITVVGKDQKGIVAGVATKVAELGLNIDDISQTVLDEYFTMMAVVSSDEKKDFTQLRSELEEFGQSLHVKINIQSAA
 MNKYRVIYYLCIIAFIANVSMMIGTLLGWFHILDSNYFFWSSLILSLVFERIEKKVKERV
 ```
 
-Each gene in `genes.fna` / `genes.faa` has a header such as `LOCUS_TAG|gene_name|freq=0.875|n=7/8|col17 product`. `n=7/8` is raw region support, using the same basis as YAML `support`. **Frequency** is the diversity-weighted fraction of assigned-region weight carrying the gene, so it need not equal 7/8. Near-identical genomes have less or zero weight. The JSON `genes[].support` stores the weighted numerator and denominator explicitly.
+Each gene in `genes.fna` / `genes.faa` has a header such as `LOCUS_TAG|gene_name|freq=0.875|n=7/8|col17 product`. 
 
-GenBank files contain translated genes observed within each final locus, including accessory genes, in their original order and orientation. Intergenic or unavailable DNA is filled with Ns: these are visualization exports, not reconstructed assembly sequences. The local `loci.tsv` uses the same columns as the global TSV except that it omits `module_id` and adds `genbank_file`.
+- `n=7/8` is raw region support, using the same basis as YAML `support`. 
+- Frequency is the diversity-weighted fraction of assigned-region weight carrying the gene, so it need not equal 7/8. Near-identical genomes are downweighted. 
+
+GenBank files contain translated genes observed within each final locus in their original order and orientation. Intergenic or unavailable DNA is filled with Ns. 
 
 ## Module variants
 
